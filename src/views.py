@@ -118,17 +118,3 @@ def get_stock_prices() -> str | list[Any]:
         return stock_prices
     except Exception as error:
         return f"Ошибка: {error}"
-
-
-def main():
-    """Основная функция"""
-    RESULT.append(
-        {
-            "greetings": time_greetings(),
-            "cards": get_card_data(),
-            "top_transactions": get_top_transactions(),
-            "currency_rates": get_currency_rates(),
-            "stock_prices": get_stock_prices(),
-        }
-    )
-    print(json.dumps(RESULT, indent=2, ensure_ascii=False))

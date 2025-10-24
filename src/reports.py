@@ -26,9 +26,10 @@ def spending_by_category(
         (transactions["Категория"] == category)
         & (transactions["Дата операции"].dt.month == target_month)
         & (transactions["Дата операции"].dt.year == target_year)
+        & (transactions["Сумма операции"] < 0)
     ]
 
-    return result
+    return result[["Дата операции", "Сумма операции"]]
 
 
 def record_to_file(filename: str = "имя файла") -> str | Any:
@@ -46,6 +47,3 @@ def record_to_file(filename: str = "имя файла") -> str | Any:
         return wrapper
 
     return decorator
-
-
-print(spending_by_category("Каршеринг", date="27.12.2021"))

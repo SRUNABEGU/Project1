@@ -1,5 +1,3 @@
-import json
-
 from src.views import load_data
 
 df = load_data()
@@ -15,6 +13,3 @@ def simple_search(search: str) -> dict:
     filtered_df = df[mask]
 
     return filtered_df.to_dict("records")
-
-
-print(json.dumps(simple_search("Константин Л."), indent=2, ensure_ascii=False))

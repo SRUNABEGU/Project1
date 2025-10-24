@@ -33,6 +33,13 @@ def test_get_card_data():
     assert result[0]["last_digits"] == "5678"
 
 
+def test_get_card_data_no_card_column():
+    test_data = pd.DataFrame({"Другой столбец": [1, 2, 3], "Сумма операции": [100, 200, 300]})
+
+    with pytest.raises(Exception, match="Данные недействительны"):
+        views.get_card_data(test_data)
+
+
 def test_get_top_transactions():
     test_data = pd.DataFrame(
         {
@@ -62,6 +69,16 @@ def test_get_currency_rates(mock_getenv, mock_request):
     assert first_item["currency"] == "USD"
 
 
+@patch("requests.request")
+@patch("os.getenv")
+def test_get_currency_rates_error(mock_getenv, mock_request):
+    mock_getenv.return_value = "fake_key"
+    mock_request.side_effect = Exception("API error")
+
+    result = views.get_currency_rates()
+    assert "Ошибка" in result
+
+
 @patch("requests.get")
 @patch("os.getenv")
 def test_get_stock_prices(mock_getenv, mock_get):
@@ -75,24 +92,6 @@ def test_get_stock_prices(mock_getenv, mock_get):
     assert first_item["stock"] == "AAPL"
 
 
-def test_get_card_data_no_card_column():
-    test_data = pd.DataFrame({"Другой столбец": [1, 2, 3], "Сумма операции": [100, 200, 300]})
-
-    with pytest.raises(Exception, match="Данные недействительны"):
-        views.get_card_data(test_data)
-
-
-@patch("requests.request")
-@patch("os.getenv")
-def test_get_currency_rates_error(mock_getenv, mock_request):
-    mock_getenv.return_value = "fake_key"
-    mock_request.side_effect = Exception("API error")
-
-    result = views.get_currency_rates()
-
-    assert "Ошибка" in result
-
-
 @patch("requests.get")
 @patch("os.getenv")
 def test_get_stock_prices_error(mock_getenv, mock_get):
@@ -100,18 +99,4 @@ def test_get_stock_prices_error(mock_getenv, mock_get):
     mock_get.side_effect = Exception("API error")
 
     result = views.get_stock_prices()
-
     assert "Ошибка" in result
-
-
-def test_main_function():
-    views.RESULT = []
-
-    views.main()
-
-    assert len(views.RESULT) == 1
-    assert "greetings" in views.RESULT[0]
-    assert "cards" in views.RESULT[0]
-    assert "top_transactions" in views.RESULT[0]
-    assert "currency_rates" in views.RESULT[0]
-    assert "stock_prices" in views.RESULT[0]
