@@ -1,3 +1,4 @@
+import logging
 import datetime
 import json
 import os
@@ -7,9 +8,19 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 from pandas import unique
-from pandas.core.interchange.dataframe_protocol import DataFrame
 
-ABSPATH_TO_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "operations.xlsx")
+from src.utils import load_data
+
+
+ABSPATH_TO_LOG = os.path.join(os.path.dirname(__file__), "..", "logs", str(__name__)+'.log')
+
+logger = logging.getLogger(__name__)
+file_handler = logging.FileHandler(ABSPATH_TO_LOG, mode="w", encoding="utf-8")
+file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
+logger.setLevel(logging.DEBUG)
+
 load_dotenv()
 RESULT = []
 
@@ -28,13 +39,6 @@ def time_greetings(date: str = "25-11-2003 06:00:01") -> str:
         return "Добрый день"
     else:
         return "Добрый вечер"
-
-
-def load_data(path: str = ABSPATH_TO_FILE) -> DataFrame:
-    """Загружает данные из Excel-файла и возвращает объект DataFrame"""
-
-    df = pd.read_excel(path)
-    return df
 
 
 def get_card_data(df: pd.DataFrame = load_data()) -> list:
@@ -95,6 +99,9 @@ def get_currency_rates() -> str | list[Any]:
             url = f"https://api.apilayer.com/exchangerates_data/convert?to=RUB&" f"from={currency}&amount=1"
             payload = {}
             headers = {"apikey": f"{os.getenv('EXCHANGERATES_API_KEY')}"}
+
+            logger.debug('Запрос к API для получения курса валют')
+
             response = requests.request("GET", url, headers=headers, data=payload)
 
             currency_rates.append({"currency": currency, "rate": round(json.loads(response.text)["result"], 2)})
@@ -111,6 +118,9 @@ def get_stock_prices() -> str | list[Any]:
         for index, stock in enumerate(["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]):
             url = f"https://api.marketstack.com/v1/eod/latest?access_key={os.getenv('MARKETSTACK_API_KEY')}"
             querystring = {"symbols": stock}
+
+            logger.debug('Запрос к API для получения cтоимости акций из S&P500.')
+
             data = (requests.get(url, params=querystring)).json()
 
             stock_prices.append({"stock": stock, "price": data["data"][0]["close"]})

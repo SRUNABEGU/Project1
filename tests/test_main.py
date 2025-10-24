@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import main
+from src import main
 
 
 @patch("main.time_greetings")
